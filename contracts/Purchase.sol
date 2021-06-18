@@ -3,7 +3,7 @@ pragma solidity >=0.4.22 <0.9.0;
 //pragma experimental ABIEncoderV2;
 
 contract Purchase {
-    enum enqStatus {created, ended, received, paid}
+    enum enqStatus {created, ended, received, paid,cancle}
     struct Bid {
         uint256 amount;
         string supName;
@@ -124,17 +124,21 @@ contract Purchase {
         return true;
     }
 
-    function endEnquery(uint256 _enqid) public returns(bool) {
+    function endEnquery(uint256 _enqid) public returns(bool) {        
         require(_enqid < enqueries.length, "not a valid enquery");
         require(
-            msg.sender == enqueries[_enqid].buyerAdd,
+            address(uint160(msg.sender)) == enqueries[_enqid].buyerAdd,
             "just buyer can close the enquery"
         );
         require(
             enqueries[_enqid].enqEndTime < block.timestamp,
             "The enquery has some times to finish"
         );
+        if(bytes(enqueries[_enqid].lowestBid.supName).length==0) {
+            enqueries[_enqid].status = enqStatus.cancle;
+        } else {
         enqueries[_enqid].status = enqStatus.ended;
+        }
         return true;
     }
 
