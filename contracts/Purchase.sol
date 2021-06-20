@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.5.0;
 //pragma experimental ABIEncoderV2;
 
 contract Purchase {
@@ -30,6 +30,7 @@ contract Purchase {
     Enquery[] enqueries;
 
     event EnqueryCreated(
+        uint256 id,
         uint256 enqno,
         uint256 duration,
         string partNo,
@@ -71,7 +72,7 @@ contract Purchase {
         enquery.sellerRcvDeposit = sellerRcvDeposit;
         enquery.sellerPaidDeposit = sellerPaidDeposit;
         enqueries.push(enquery);
-        emit EnqueryCreated(enqno, duration, partNo, partName, qty, buyerName);
+        emit EnqueryCreated(id,enqno, duration, partNo, partName, qty, buyerName);
         return id;
     }
 
@@ -127,18 +128,42 @@ contract Purchase {
     function endEnquery(uint256 _enqid) public returns(bool) {        
         require(_enqid < enqueries.length, "not a valid enquery");
         require(
-            address(uint160(msg.sender)) == enqueries[_enqid].buyerAdd,
+            msg.sender == enqueries[_enqid].buyerAdd,
             "just buyer can close the enquery"
         );
         require(
             enqueries[_enqid].enqEndTime < block.timestamp,
             "The enquery has some times to finish"
         );
+        require(
+            enqueries[_enqid].status == enqStatus.created,
+            "The enquery is not in open phase"
+        );
+
         if(bytes(enqueries[_enqid].lowestBid.supName).length==0) {
             enqueries[_enqid].status = enqStatus.cancle;
         } else {
         enqueries[_enqid].status = enqStatus.ended;
         }
+        return true;
+    }
+
+    function cancleEnquery(uint256 _enqid) public returns(bool) {        
+        require(_enqid < enqueries.length, "not a valid enquery");
+        require(
+//            address(uint160(msg.sender)) == enqueries[_enqid].buyerAdd,
+            msg.sender == enqueries[_enqid].buyerAdd,
+            "just buyer can cancle the enquery"
+        );
+        require(
+            enqueries[_enqid].status == enqStatus.created,
+            "The enquery is not in open phase"
+        );
+        require(
+            enqueries[_enqid].lowestBid.bidder == address(0),
+            "Just in case of no Bid the Purchase can be cancled"
+        );        
+        enqueries[_enqid].status = enqStatus.cancle;
         return true;
     }
 

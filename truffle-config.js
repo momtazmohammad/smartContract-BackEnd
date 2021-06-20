@@ -1,4 +1,6 @@
 const path = require("path");
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+const mnemonic = 'impulse donate horror rapid problem holiday biology flight bean later bunker balance';
 /**
  * Use this file to configure your truffle project. It's seeded with some
  * common settings for different networks and features like migrations,
@@ -47,7 +49,13 @@ module.exports = {
       host: "127.0.0.1",     // Localhost (default: none)
       port: 7545,            // Standard Ethereum port (default: none)
       network_id: "*",       // Any network (default: none)
-    },
+    },    
+    ropsten: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/a143b861a8744567946ec8cb0a87c9df")
+      },
+      network_id: 3
+    }    
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
@@ -86,10 +94,10 @@ module.exports = {
       // version: "0.5.1",    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
+       optimizer: {
+         enabled: true,
+         runs: 200
+       },
       //  evmVersion: "byzantium"
       // }
     }
