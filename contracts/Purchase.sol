@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.5.0;
+
 //pragma experimental ABIEncoderV2;
 
 contract Purchase {
-    enum enqStatus {created, ended, received, paid,cancle}
+    enum enqStatus {
+        created,
+        ended,
+        received,
+        paid,
+        cancle
+    }
     struct Bid {
         uint256 amount;
         string supName;
@@ -37,7 +44,7 @@ contract Purchase {
         string partName,
         uint256 qty,
         string buyerName
-    );   
+    );
 
     function createEnquery(
         uint256 enqno,
@@ -72,7 +79,15 @@ contract Purchase {
         enquery.sellerRcvDeposit = sellerRcvDeposit;
         enquery.sellerPaidDeposit = sellerPaidDeposit;
         enqueries.push(enquery);
-        emit EnqueryCreated(id,enqno, duration, partNo, partName, qty, buyerName);
+        emit EnqueryCreated(
+            id,
+            enqno,
+            duration,
+            partNo,
+            partName,
+            qty,
+            buyerName
+        );
         return id;
     }
 
@@ -125,7 +140,7 @@ contract Purchase {
         return true;
     }
 
-    function endEnquery(uint256 _enqid) public returns(bool) {        
+    function endEnquery(uint256 _enqid) public returns (bool) {
         require(_enqid < enqueries.length, "not a valid enquery");
         require(
             msg.sender == enqueries[_enqid].buyerAdd,
@@ -140,18 +155,18 @@ contract Purchase {
             "The enquery is not in open phase"
         );
 
-        if(bytes(enqueries[_enqid].lowestBid.supName).length==0) {
+        if (bytes(enqueries[_enqid].lowestBid.supName).length == 0) {
             enqueries[_enqid].status = enqStatus.cancle;
         } else {
-        enqueries[_enqid].status = enqStatus.ended;
+            enqueries[_enqid].status = enqStatus.ended;
         }
         return true;
     }
 
-    function cancleEnquery(uint256 _enqid) public returns(bool) {        
+    function cancleEnquery(uint256 _enqid) public returns (bool) {
         require(_enqid < enqueries.length, "not a valid enquery");
         require(
-//            address(uint160(msg.sender)) == enqueries[_enqid].buyerAdd,
+            //            address(uint160(msg.sender)) == enqueries[_enqid].buyerAdd,
             msg.sender == enqueries[_enqid].buyerAdd,
             "just buyer can cancle the enquery"
         );
@@ -162,12 +177,13 @@ contract Purchase {
         require(
             enqueries[_enqid].lowestBid.bidder == address(0),
             "Just in case of no Bid the Purchase can be cancled"
-        );        
+        );
         enqueries[_enqid].status = enqStatus.cancle;
+        enqueries[_enqid].buyerAdd.transfer(enqueries[_enqid].buyerDeposit); // refund back buyer deposit
         return true;
     }
 
-    function receivedItem(uint256 _enqid) public payable  returns(bool) {
+    function receivedItem(uint256 _enqid) public payable returns (bool) {
         require(_enqid < enqueries.length, "not a valid enquery");
         require(
             enqueries[_enqid].status == enqStatus.ended,
@@ -184,7 +200,7 @@ contract Purchase {
         return true;
     }
 
-    function settlement(uint256 _enqid) public payable  returns(bool) {
+    function settlement(uint256 _enqid) public payable returns (bool) {
         require(_enqid < enqueries.length, "not a valid enquery");
         require(
             enqueries[_enqid].status == enqStatus.received,
@@ -242,7 +258,7 @@ contract Purchase {
             string memory,
             address,
             uint256,
-            uint256            
+            uint256
         )
     {
         Enquery memory enquery = enqueries[id];
@@ -252,7 +268,7 @@ contract Purchase {
             enquery.lowestBid.supName,
             enquery.buyerAdd,
             enquery.sellerRcvDeposit,
-            enquery.sellerPaidDeposit            
+            enquery.sellerPaidDeposit
         );
     }
 
@@ -260,8 +276,7 @@ contract Purchase {
         return (enqueries.length);
     }
 
-    function getBlocktime() external view returns (uint) {
-    return (block.timestamp);
+    function getBlocktime() external view returns (uint256) {
+        return (block.timestamp);
     }
-
 }
